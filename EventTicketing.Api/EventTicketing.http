@@ -1,0 +1,67 @@
+@host = http://localhost:5000
+
+### The whole system, with nothing of Module 1 left in it
+GET {{host}}/api/events/1/availability
+
+### The vertical slice — one file, straight to EF
+GET {{host}}/api/schedule
+
+### Buy ten -> the aggregate applies the 10% bulk discount
+### 10 x 49.99 = 499.90, minus 10% = 449.91
+POST {{host}}/api/events/1/purchases
+Content-Type: application/json
+
+{ "quantity": 10, "customerEmail": "reader@example.com" }
+
+### --- Purchase: the full stack, end to end ---
+
+### Buy two tickets
+POST {{host}}/api/events/1/purchases
+Content-Type: application/json
+
+{ "quantity": 2, "customerEmail": "reader@example.com" }
+
+### A declined card -> 409, and NOTHING committed: no reservation, no domain events
+POST {{host}}/api/events/1/purchases
+Content-Type: application/json
+
+{ "quantity": 2, "customerEmail": "decline@example.com" }
+
+### Refund one ticket — capacity returns and the money goes back
+### (paste in the paymentReference the purchase above gave you)
+POST {{host}}/api/events/1/refunds
+Content-Type: application/json
+
+{ "quantity": 1, "paymentReference": "CH-a1b2c3d4..." }
+
+### --- Minimal API endpoints (the clean controllers are gone) ---
+
+### Available events (was /api/catalog/available-events before Module 7)
+GET {{host}}/api/events/available
+
+### Availability — now a sub-resource of the event
+GET {{host}}/api/events/1/availability
+
+### Reserve three tickets
+POST {{host}}/api/events/1/reservations
+Content-Type: application/json
+
+{ "quantity": 3 }
+
+### Invalid quantity -> 400 from the validation behavior
+POST {{host}}/api/events/1/reservations
+Content-Type: application/json
+
+{ "quantity": 0 }
+
+### Unknown event -> 404 ProblemDetails, no exception thrown
+POST {{host}}/api/events/999/reservations
+Content-Type: application/json
+
+{ "quantity": 1 }
+
+### Oversell -> 409 ProblemDetails, no exception thrown
+POST {{host}}/api/events/1/reservations
+Content-Type: application/json
+
+{ "quantity": 100000 }

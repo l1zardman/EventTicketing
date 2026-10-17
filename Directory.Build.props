@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Generated</InterceptorsNamespaces>
+    <!-- Or use <Features>InterceptorsPreview</Features> -->
+  </PropertyGroup>
+</Project>
